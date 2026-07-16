@@ -52,6 +52,7 @@ public class PlayerAttack : MonoBehaviour
     }
     void Attack()
     {
+        _timer = 0;
         switch (_combo)
         {
             case 0:
