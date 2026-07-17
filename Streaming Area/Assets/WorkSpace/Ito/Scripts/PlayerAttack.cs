@@ -1,13 +1,16 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
     [Header("攻撃力"), SerializeField] float _power;
     [Header("コンボのリセット時間"), SerializeField] float _resetComboTime = 2;
     [Header("最大溜め時間"), SerializeField] float _maxChargeTime = 3;
+    [Header("通常攻撃とチャージ攻撃を切り替える時間"),SerializeField] float _chargeRequiredTime = 0.5f;
     int _combo;
     float _timer;
     float _chargeTime;
+    bool _isCharging;
     void Update()
     {
         if (_combo != 0)
@@ -19,35 +22,41 @@ public class PlayerAttack : MonoBehaviour
                 _timer = 0;
             }
         }
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            _chargeTime = 0;
-        }
-        if (Input.GetKey(KeyCode.Mouse0))
+        if(_isCharging)
         {
             _chargeTime += Time.deltaTime;
-            if ( _chargeTime > _maxChargeTime)
+            if (_chargeTime > _maxChargeTime)
             {
                 _chargeTime = _maxChargeTime;
             }
         }
-
-        if (Input.GetKeyUp(KeyCode.Mouse0))
+    }
+       
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.started)
         {
-            if (_chargeTime <= 0.5)
+            _chargeTime = 0;
+            _isCharging = true;
+        }
+        if (context.canceled)
+        {
+            if (_chargeTime <= _chargeRequiredTime)
             {
-                Debug.Log("コンボ");
                 Attack();
             }
             else
             {
                 ChargeAttack();
             }
+            _isCharging= false;
             _chargeTime = 0;
         }
     }
     void ChargeAttack()
     {
+        _combo = 0;
+        _timer = 0;
         Debug.Log(_chargeTime * _power + "ダメージ");
     }
     void Attack()
