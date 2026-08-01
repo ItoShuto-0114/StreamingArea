@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class EnemyBase : MonoBehaviour,IDamageble
+public class EnemyBase : MonoBehaviour,IDamageable
 {
     [Header("HP")]
     [SerializeField] protected float _hp;
@@ -18,7 +18,7 @@ public class EnemyBase : MonoBehaviour,IDamageble
     }
     protected virtual void Dead()
     {
-        Debug.Log("ÇÆÇ¶Å[");
+        
     }
     protected virtual void Attack()
     {
