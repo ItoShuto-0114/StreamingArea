@@ -35,7 +35,7 @@ public class FlyingEnemy : EnemyBase
     Vector3 _tackleTargetPos;
     Vector3 _tackleDirection;
     bool _isAttack;
-    bool _isLockOn;
+    bool _canLockOn;
     bool _isTackle;//タックル中しているかのbool
     bool _isReturning;//タックル後元の高さに戻すためのbool
     bool _isFacingRight;//どこ向いているかのbool
@@ -60,13 +60,13 @@ public class FlyingEnemy : EnemyBase
         _distance = Vector3.Distance(transform.position , _player.transform.position);//プレイヤーと敵の距離
         if (_distance > DetectRange && !_isAttack)//プレイヤーが範囲外に居たら
         {
-            Move(); //ランダム移動
-            _isLockOn = false;
+            EnemyMove(); //ランダム移動
+            _canLockOn = false;
             _count = 0;
         }
         else//プレイヤーが範囲内だったら
         {
-            _isLockOn = true;
+            _canLockOn = true;
             Attack();
         }
         #endregion
@@ -82,7 +82,7 @@ public class FlyingEnemy : EnemyBase
     }
     //移動処理
     #region
-    void Move()
+    void EnemyMove()
     {
         _isFacingRight = _targetX.x > transform.position.x;
         UpdateFacing();
@@ -162,12 +162,12 @@ public class FlyingEnemy : EnemyBase
             yield return null;
         }
         _isTackle = false;
-        yield return StartCoroutine(HeightRoutine());
+        yield return StartCoroutine(ReturnHeightRoutine());
         _count = 0;
         _isAttack = false;
     }
 
-    public IEnumerator HeightRoutine()//元の高さに戻すコルーチン
+    public IEnumerator ReturnHeightRoutine()//元の高さに戻すコルーチン
     {
         _isReturning = true;
         while (true)
