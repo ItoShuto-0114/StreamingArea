@@ -1,16 +1,31 @@
 using UnityEngine;
 
-public class Singleton : MonoBehaviour
+public class Singleton<T> : MonoBehaviour where T : Singleton<T>
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private static T instance;
+
+    public static T Instance
     {
-        
+        get
+        {
+            if (Instance == null)
+                Debug.LogWarning($"Singleton{typeof(T)}のインスタンスが存在していません");
+
+            return instance;
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    protected void Awake()
     {
-        
+        if( instance == null )
+        {
+            instance = this as T;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Debug.LogWarning($"Singleton{typeof(T)}が重複しました");
+            Destroy(gameObject);
+        }
     }
 }
