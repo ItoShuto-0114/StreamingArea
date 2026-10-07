@@ -1,16 +1,24 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool : MonoBehaviour
+public class ObjectPool<T> where T : Component
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private List<T> _objects = new List<T>();
+    private Queue<T> _queue = new Queue<T>();
+
+    public ObjectPool(T obj, int poolSize, Transform parent)
     {
-        
+        Init(obj, poolSize, parent);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Init(T obj, int size, Transform parent)
     {
-        
+        for (int i = 0; i < size; i++)
+        {
+            T instObj = Object.Instantiate(obj, parent);
+            _objects.Add(instObj);
+            instObj.gameObject.SetActive(false);
+            _queue.Enqueue(instObj);
+        }
     }
 }
