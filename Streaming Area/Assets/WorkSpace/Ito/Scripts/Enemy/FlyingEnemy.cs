@@ -36,7 +36,7 @@ public class FlyingEnemy : EnemyBase
     Vector3 _tackleDirection;
     bool _isAttack;
     bool _canLockOn;
-    bool _isTackle;//タックル中しているかのbool
+    bool _isTackle;//タックル中かどうかのbool
     bool _isReturning;//タックル後元の高さに戻すためのbool
     bool _isFacingRight;//どこ向いているかのbool
     int _count;
