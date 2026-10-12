@@ -11,7 +11,7 @@ public class TurretEnemy : EnemyBase,IDamageable
     [Header("砲台とプレイヤーが同じY座標とみなす許容範囲"), SerializeField] float SameYThreshold = 3;
     [Header("視認してからレーザーを発射するまでの予兆時間"), SerializeField] float LaserStartDelay = 3;
     [Header("レーザーの攻撃判定が残る時間"), SerializeField] float LaserDuration;
-    [Header("レーザーがプレイヤーに与えるダメージ"), SerializeField] float LaserDamage;
+    [Header("レーザーダメージ倍率"), SerializeField] float LaserDamageRate = 1;
     [Header("レーザーを弾速ありで扱う場合の速度"), SerializeField] float LaserSpeed;
     [Header("レーザーを即時判定の攻撃として扱うか"), SerializeField] bool UseInstantLaser = false;
     [Header("レーザーが壁に当たった場合反射するか"), SerializeField] bool UseWallReflection = true;
@@ -21,7 +21,7 @@ public class TurretEnemy : EnemyBase,IDamageable
     [Header("レーザー攻撃後、防壁を生成するか"), SerializeField] bool UseBarrier = true;
     [Header("防壁を設置するまでの待機時間"), SerializeField] float BarrierSpawnTiming;
     [Header("レーザーが防壁に当たった場合、屈折させるか"), SerializeField] bool UseBarrierRefraction;
-    [Header("屈折後レーザーのダメージ"), SerializeField] int RefractionDamage;
+    [Header("屈折後レーザーのダメージ"), SerializeField] float RefractionDamageRate = 1.5f;
     [Header("屈折後レーザーが壁でさらに反射するか"), SerializeField] bool RefractionCanReflectWall = true;
     [Header("一連の攻撃後、最初に戻るまでの待機時間"), SerializeField] float LoopDelayAfterAction;
     [Header("バリアのPrefab"), SerializeField] GameObject _barrierPrefab;
@@ -147,6 +147,7 @@ public class TurretEnemy : EnemyBase,IDamageable
                         if(!_isRefracted)
                         {
                             //レーザーダメージ処理
+                            //float damage = _power * (_isRefracted ? RefractionDamage : LaserDamage);
                         }
                         else
                         {
