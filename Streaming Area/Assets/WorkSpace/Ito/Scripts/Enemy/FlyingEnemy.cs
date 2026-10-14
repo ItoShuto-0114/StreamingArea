@@ -10,20 +10,17 @@ public class FlyingEnemy : EnemyBase
     float _hoverOffSet;
     [Header("ランダム移動の最大移動距離"), SerializeField] float WanderMoveDistance = 1;
     [Header("ランダム移動にかかる時間"), SerializeField] float WanderMoveTime = 0.8f;
-    //[Header("移動制限"), ] bool MoveAreaClamp = true;
-    //[Header("1セットで打つエナジー弾の数"), SerializeField] int ShotCount = 3; エナジー弾はマズルの数だけ撃つ
     [Header("弾と弾の発射感覚"), SerializeField] float ShotInterval = 0.2f;
     [Header("射撃後の硬直時間"), SerializeField] float ShotCooldownAfterBurst = 5f;
-
     [Header("タックル攻撃"), SerializeField] bool UseTackle = false;
     [Header("射撃＋移動を何セット後にタックルするか"), SerializeField] int TackleAfterBurstSet = 2;
-    [Header("タックル時の移動速度"), SerializeField] float TackleSpeed;
-    [Header("タックルの最大継続時間"), SerializeField] float TackleMaxTime;
+    [Header("タックル時の移動速度"), SerializeField] float TackleSpeed = 10;
+    [Header("タックルの最大継続時間"), SerializeField] float TackleMaxTime = 1;
     [Header("壁・地面に当たる前に止まる距離"), SerializeField] float TackleStopDistance = 1f;
     [Header("タックル後に戻る高さ"), SerializeField] float ReturnHeight = 2.5f;
     [Header("エネルギー弾のPrefab"), SerializeField] GameObject _bullet;
     [Header("エネルギー弾が止まる位置"), SerializeField] Transform[] _stopPos;
-    [Header("エネルギー弾が出る位置"), SerializeField] Transform _muzzle;
+    [Header("エネルギー弾が出る位置"), SerializeField] Transform _muzzle;//エネルギー弾はマズルの数だけ撃つ
     Color _warningColor = Color.red;
     Color _originalColor;
     Renderer _rend;
@@ -113,22 +110,16 @@ public class FlyingEnemy : EnemyBase
             transform.localScale = new Vector3(-1, 1, 1);
         }
     }
+    void FacePlayer()
+    {
+        _isFacingRight = _player.position.x >= transform.position.x;
+        UpdateFacing();
+    }
     //攻撃処理
     #region
     protected override void Attack()
     {
-        if (_isAttack)
-        {
-            if (_player.position.x < transform.position.x)
-            {
-                _isFacingRight = false;
-            }
-            else
-            {
-                _isFacingRight = true;
-            }
-            UpdateFacing();
-        }
+        if (!_isTackle) { FacePlayer(); }
         if (_isAttack) return;
         if (UseTackle && _count >= TackleAfterBurstSet)
         {
