@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // 壁キック直後は何もしない
-        if(_isWallKick && _waitInput > _waitTimer)
+        if (_isWallKick && _waitInput > _waitTimer)
         {
             _waitTimer += Time.deltaTime;
             return;
@@ -37,9 +37,9 @@ public class PlayerController : MonoBehaviour
 
             _isWallKick = false;
             _waitTimer = 0f;
-            
+
             WallKick();
-            
+
 
         }
 
@@ -147,7 +147,7 @@ public class PlayerController : MonoBehaviour
         // Shiftキーを押しながらならダッシュ
         if (Keyboard.current.shiftKey.isPressed)
         {
-            _rb.linearVelocity = new Vector3(_priorityDir * PlayerDashSpeed, _rb.linearVelocity.y);
+            Dash();
         }
         else  // そうでないなら通常速度
         {
@@ -156,6 +156,14 @@ public class PlayerController : MonoBehaviour
 
 
 
+    }
+
+    /// <summary>
+    /// ダッシュ
+    /// </summary>
+    void Dash()
+    {
+        _rb.linearVelocity = new Vector3(_priorityDir * PlayerDashSpeed, _rb.linearVelocity.y);
     }
 
     /// <summary>
@@ -180,6 +188,8 @@ public class PlayerController : MonoBehaviour
     }
 
     // 地面との接触判定
+    // 地面タグを消したので、一旦コメントアウトf
+    /*
     private void OnTriggerEnter(Collider other)
     {
         // 地面タグだった場合
@@ -197,4 +207,5 @@ public class PlayerController : MonoBehaviour
             _jumpCount = 0;
         }
     }
+    */
 }
