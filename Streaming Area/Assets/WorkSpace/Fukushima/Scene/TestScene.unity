@@ -225,7 +225,6 @@ GameObject:
   - component: {fileID: 1417628923}
   - component: {fileID: 1417628927}
   - component: {fileID: 1417628928}
-  - component: {fileID: 1417628929}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -368,31 +367,11 @@ MonoBehaviour:
   PlayerJumpPower: 8
   PlayerDashSpeed: 10
   maxDistance: 0.7
+  _groundCheckDistance: 0.6
   _jumpCount: 0
   _waitInput: 0.3
   _waitTimer: 0
   _isWallKick: 0
---- !u!65 &1417628929
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1417628922}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.9092871, y: 0.103085995, z: 1}
-  m_Center: {x: -0.002834797, y: -0.5023179, z: 0}
 --- !u!1 &1666873122
 GameObject:
   m_ObjectHideFlags: 0

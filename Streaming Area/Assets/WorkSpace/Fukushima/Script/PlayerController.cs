@@ -7,10 +7,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float PlayerJumpPower;
     [SerializeField] private float PlayerDashSpeed;
     [SerializeField] private float maxDistance = 1.2f;
+    [SerializeField] private float _groundCheckDistance = 1.1f; // 足元を調べる距離
 
     private Rigidbody _rb;
     private int _priorityDir = 0; // 優先する入力（ -1：左 0：入力なし 1：右）
-    [SerializeField] private int _jumpCount = 0;     // ジャンプできる回数（地面についたら1に）
 
     [SerializeField] private float _waitInput = 0.1f;   // 壁キック後の待ち時間
     [SerializeField] private float _waitTimer = 0f;
@@ -46,12 +46,23 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// 足元にRayを飛ばして、地面があるか調べる
+    /// </summary>
+    bool IsGrounded()
+    {
+        // Sceneビューで確認するためのデバッグ線（緑）
+        Debug.DrawRay(transform.position, Vector3.down * _groundCheckDistance, Color.green);
+
+        return Physics.Raycast(transform.position, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
+    }
+
+    /// <summary>
     /// 壁キック
     /// </summary>
     void WallKick()
     {
-        // ジャンプ回数が1以上（地面についている）なら何もしない
-        if (_jumpCount > 0)
+        // 地面についているなら何もしない
+        if (IsGrounded())
             return;
 
         // 左右どっち向きかを-1・1で取得
@@ -176,36 +187,15 @@ public class PlayerController : MonoBehaviour
         // ジャンプ処理
         if (isSpaceHeld)
         {
-            if (_jumpCount > 0)
+            if (IsGrounded())
             {
                 _rb.AddForce(new Vector3(0, PlayerJumpPower, 0), ForceMode.Impulse);
             }
-            else if (_jumpCount == 0)
+            else
             {
-                // ジャンプカウントが0なら何もしない
+                // 地面についていなければ何もしない
             }
         }
     }
 
-    // 地面との接触判定
-    // 地面タグを消したので、一旦コメントアウトf
-    /*
-    private void OnTriggerEnter(Collider other)
-    {
-        // 地面タグだった場合
-        if (other.CompareTag("Ground"))
-        {
-            _jumpCount = 1;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        // 地面タグから離れた場合
-        if (other.CompareTag("Ground"))
-        {
-            _jumpCount = 0;
-        }
-    }
-    */
 }
