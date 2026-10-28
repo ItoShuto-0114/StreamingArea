@@ -33,14 +33,9 @@ public class PlayerController : MonoBehaviour
         else
         {
             Move();
-            Jump();
 
             _isWallKick = false;
             _waitTimer = 0f;
-
-            WallKick();
-
-
         }
 
     }
@@ -61,10 +56,6 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void WallKick()
     {
-        // 地面についているなら何もしない
-        if (IsGrounded())
-            return;
-
         // 左右どっち向きかを-1・1で取得
         Vector3 moveDir = (transform.right * _priorityDir).normalized;
 
@@ -82,15 +73,12 @@ public class PlayerController : MonoBehaviour
 
             Debug.Log("当たったオブジェクト: " + hitObject.name);
 
-            // ジャンプボタンが押されたら壁キック（斜め45度方向に飛ばす）
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            {
-                // 実際に力を加える
-                _rb.linearVelocity = (-moveDir + transform.up) * PlayerJumpPower;
+            // このメソッドに入った段階でジャンプ入力がされているため、ここでの入力受付は必要なし
+            // 実際に力を加える
+            _rb.linearVelocity = (-moveDir + transform.up) * PlayerJumpPower;
 
-                // 壁キック判定を真に
-                _isWallKick = true;
-            }
+            // 壁キック判定を真に
+            _isWallKick = true;
 
         }
 
@@ -178,23 +166,23 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// ジャンプ処理
+    /// ジャンプ処理（Player.csから呼ばれる）
     /// </summary>
-    void Jump()
+    public void Jump()
     {
-        bool isSpaceHeld = Keyboard.current.spaceKey.wasPressedThisFrame;
+        // 壁キック直後は何もしない
+        if (_isWallKick)
+            return;
 
-        // ジャンプ処理
-        if (isSpaceHeld)
+        if (IsGrounded())
         {
-            if (IsGrounded())
-            {
-                _rb.AddForce(new Vector3(0, PlayerJumpPower, 0), ForceMode.Impulse);
-            }
-            else
-            {
-                // 地面についていなければ何もしない
-            }
+            // 地面にいればジャンプ
+            _rb.AddForce(new Vector3(0, PlayerJumpPower, 0), ForceMode.Impulse);
+        }
+        else
+        {
+            // 空中なら壁キックを試す
+            WallKick();
         }
     }
 
