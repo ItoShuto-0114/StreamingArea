@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -10,7 +9,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _groundCheckDistance = 1.1f; // 足元を調べる距離
 
     private Rigidbody _rb;
-    private int _priorityDir = 0; // 優先する入力（ -1：左 0：入力なし 1：右）
+    private int _moveDir = 0; // Playerから指示された移動方向（ -1：左 0：入力なし 1：右）
 
     [SerializeField] private float _waitInput = 0.1f;   // 壁キック後の待ち時間
     [SerializeField] private float _waitTimer = 0f;
@@ -24,18 +23,17 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // 壁キック直後は何もしない
-        if (_isWallKick && _waitInput > _waitTimer)
+        // 壁キック直後は、待ち時間を数える
+        if (_isWallKick)
         {
             _waitTimer += Time.deltaTime;
-            return;
-        }
-        else
-        {
-            Move();
 
-            _isWallKick = false;
-            _waitTimer = 0f;
+            // 待ち時間が過ぎたら、また操作できるようにする
+            if (_waitTimer >= _waitInput)
+            {
+                _isWallKick = false;
+                _waitTimer = 0f;
+            }
         }
 
     }
@@ -57,7 +55,7 @@ public class PlayerController : MonoBehaviour
     void WallKick()
     {
         // 左右どっち向きかを-1・1で取得
-        Vector3 moveDir = (transform.right * _priorityDir).normalized;
+        Vector3 moveDir = (transform.right * _moveDir).normalized;
 
         // Rayを作成（原点: 自分の位置, 方向: 前方）
         Ray ray = new Ray(transform.position, moveDir);
@@ -87,82 +85,34 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 左右移動・ダッシュ
+    /// 左右移動（Player.csから呼ばれる）
     /// </summary>
-    void Move()
+    public void Move(int dir)
     {
-        // 入力を取得
-        bool isLeftHeld = Keyboard.current.aKey.isPressed;
-        bool isRightHeld = Keyboard.current.dKey.isPressed;
-
-        // 前の入力を判断
-        // 左入力を優先
-        if (_priorityDir == -1)
+        // 壁キック直後は何もしない
+        if(_isWallKick)
         {
-            // 左入力優先状態かつ、左入力が離されたら
-            if (!isLeftHeld)
-            {
-                // 右入力が押されていれば、右優先に切り替える
-                if (isRightHeld)
-                {
-                    _priorityDir = 1;
-                }
-                else
-                {
-                    _priorityDir = 0;
-                }
-            }
-        }
-        else if (_priorityDir == 1)
-        {
-            // 右入力優先かつ、右入力が離されたら
-            if (!isRightHeld)
-            {
-                // 左入力が押されていれば、左優先に切り替える
-                if (isLeftHeld)
-                {
-                    _priorityDir = -1;
-                }
-                else
-                {
-                    _priorityDir = 0;
-                }
-            }
-        }
-        else if (_priorityDir == 0)
-        {
-            // どちらかの入力があれば、それを優先入力とする
-            if (Keyboard.current.aKey.isPressed)
-            {
-                _priorityDir = -1;
-            }
-            else if (Keyboard.current.dKey.isPressed)
-            {
-                _priorityDir = 1;
-            }
+            return;
         }
 
-        // 移動
-        // Shiftキーを押しながらならダッシュ
-        if (Keyboard.current.shiftKey.isPressed)
-        {
-            Dash();
-        }
-        else  // そうでないなら通常速度
-        {
-            _rb.linearVelocity = new Vector3(_priorityDir * PlayerSpeed, _rb.linearVelocity.y);
-        }
-
-
+        _moveDir = dir;
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerSpeed, _rb.linearVelocity.y);
 
     }
 
     /// <summary>
-    /// ダッシュ
+    /// ダッシュ（Player.csから呼ばれる）
     /// </summary>
-    void Dash()
+    public void Dash(int dir)
     {
-        _rb.linearVelocity = new Vector3(_priorityDir * PlayerDashSpeed, _rb.linearVelocity.y);
+        // 壁キック直後は何もしない
+        if (_isWallKick)
+        {
+            return;
+        }
+
+        _moveDir = dir;
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerDashSpeed, _rb.linearVelocity.y);
     }
 
     /// <summary>
