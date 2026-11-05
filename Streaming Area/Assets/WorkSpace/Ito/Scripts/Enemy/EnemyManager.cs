@@ -78,5 +78,13 @@ public class EnemyManager : Singleton<EnemyManager>
             if (enemy.IsLockedOn) result.Add(enemy);
         }
         return result;
-    }  
+    } 
+    public  void EnemyOnDead(EnemyBase enemy)
+    {
+        _enemyList.Remove(enemy);
+        if(_enemyList.Count == 0)
+        {
+            //ƒQ[ƒ€ƒNƒŠƒAˆ—
+        }
+    }
 }

@@ -13,6 +13,7 @@ public class EnemyBase : MonoBehaviour, IDamageable
     [SerializeField] protected float _duration;
     protected bool _isLockOn = false;
     Coroutine _lockOnCoroutine;
+    protected Transform PlayerTransform => EnemyManager.Instance.PlayerTransform;
     public bool IsLockedOn
     {
         get { return _isLockOn; }
@@ -58,6 +59,13 @@ public class EnemyBase : MonoBehaviour, IDamageable
             Dead();
         }
     }
-    protected virtual void Dead() { }
+    protected virtual void Dead() 
+    {
+        if (EnemyManager.Instance != null)
+        {
+            EnemyManager.Instance.EnemyOnDead(this);
+        }
+        Destroy(gameObject);
+    }
     protected virtual void Attack() { }
 }
