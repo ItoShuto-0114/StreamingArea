@@ -18,7 +18,9 @@ public class FlyingEnemy : EnemyBase
     [Header("タックルの最大継続時間"), SerializeField] float TackleMaxTime = 1;
     [Header("壁・地面に当たる前に止まる距離"), SerializeField] float TackleStopDistance = 1f;
     [Header("タックル後に戻る高さ"), SerializeField] float ReturnHeight = 2.5f;
-    [Header("エネルギー弾のPrefab"), SerializeField] GameObject _bullet;
+    [Header("エネルギー弾のPrefab"), SerializeField] EnemyBullet _bullet;
+    [Header("プールのサイズ"), SerializeField] int _poolSize = 10;
+    ObjectPool<EnemyBullet> _bulletPool;
     [Header("エネルギー弾が止まる位置"), SerializeField] Transform[] _stopPos;
     [Header("エネルギー弾が出る位置"), SerializeField] Transform _muzzle;//エネルギー弾はマズルの数だけ撃つ
     Color _warningColor = Color.red;
@@ -41,6 +43,7 @@ public class FlyingEnemy : EnemyBase
     protected override void Start()
     {
         base.Start();
+        _bulletPool = new ObjectPool<EnemyBullet>(_bullet, _poolSize, transform);
         _centerPos = transform.position;
         _targetX = RandomDirection();
         _rend = GetComponent<Renderer>();
@@ -90,7 +93,6 @@ public class FlyingEnemy : EnemyBase
             _targetX = RandomDirection();
         }
     }
-    
     private Vector3 RandomDirection()//ランダムな方向を決めるメソッド
     {
         float x = Random.Range(-WanderMoveDistance, WanderMoveDistance);
@@ -201,11 +203,8 @@ public class FlyingEnemy : EnemyBase
     }
     void Shoot(Transform muzzle)
     {
-        GameObject bulletObj = Instantiate(_bullet, _muzzle.position, Quaternion.identity);
-        if (bulletObj.TryGetComponent<EnemyBullet>(out var bullet))
-        {
-            bullet.Init(muzzle.position); // 本来の目標位置を渡す
-        }
+        var bulletObj = _bulletPool.SpawnObject(_muzzle.position);
+            bulletObj.Init(muzzle.position,_bulletPool); // 本来の目標位置を渡す
     }
     #endregion
     public IEnumerator Blink()//タックル直前点滅するメソッド

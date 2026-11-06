@@ -11,13 +11,20 @@ public class EnemyBullet : MonoBehaviour
     Vector3 _direction;
     bool _isMoving = false;
     Vector3 _muzzleTargetPos;
-
-    void Start()
+    ObjectPool<EnemyBullet> _bulletPool;
+    void Update()
     {
-        Destroy(gameObject, ProjectileLifeTime);
+        if (_isMoving)
+        {
+            transform.position += _direction * ProjectileSpeed * Time.deltaTime;
+        }
     }
-
-   IEnumerator ShootBullet()
+    IEnumerator LifeRoutine()
+    {
+        yield return new WaitForSeconds(ProjectileLifeTime);
+        Release();
+    }
+    IEnumerator ShootBullet()
     {
         Vector3 startPos = transform.position;
         float timer = 0f;
@@ -31,32 +38,40 @@ public class EnemyBullet : MonoBehaviour
         }
         transform.position = _muzzleTargetPos; // 誤差対策
         yield return new WaitForSeconds(_delayTime);
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        var player = EnemyManager.Instance?.PlayerTransform;
         if (player != null)
         {
-            _direction = (player.transform.position - transform.position).normalized;
+            _direction = (player.position - transform.position).normalized;
+        }
+        else
+        {
+            _direction = Vector3.zero;
         }
         _isMoving = true;
     }
-    public void Init(Vector3 muzzlePos)
+    public void Init(Vector3 muzzlePos,ObjectPool<EnemyBullet> pool)
     {
+        _bulletPool = pool;
         _muzzleTargetPos = muzzlePos;
+        _isMoving = false;
+       StartCoroutine(LifeRoutine());
         StartCoroutine(ShootBullet());
-    }
-    void Update()
-    {
-        if (_isMoving)
-        {
-            transform.position += _direction * ProjectileSpeed * Time.deltaTime;
-        }
     }
     private void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag("Player"))
         {
-            Destroy(gameObject);
+            Release();
             Debug.Log("プレイヤーに当たった");
             //ダメージ処理
+        }
+    }
+    void Release()
+    {
+        if (_bulletPool != null) _bulletPool.ReturnObject(this);
+        else
+        {
+            Destroy(gameObject);
         }
     }
 }
