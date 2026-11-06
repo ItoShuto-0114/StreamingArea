@@ -18,21 +18,21 @@ public class FlyingEnemy : EnemyBase
     [Header("タックルの最大継続時間"), SerializeField] float TackleMaxTime = 1;
     [Header("壁・地面に当たる前に止まる距離"), SerializeField] float TackleStopDistance = 1f;
     [Header("タックル後に戻る高さ"), SerializeField] float ReturnHeight = 2.5f;
-    [Header("エネルギー弾のPrefab"), SerializeField] GameObject _bullet;
+    [Header("エネルギー弾のPrefab"), SerializeField] EnemyBullet _bullet;
+    [Header("プールのサイズ"), SerializeField] int _poolSize = 10;
+    ObjectPool<EnemyBullet> _bulletPool;
     [Header("エネルギー弾が止まる位置"), SerializeField] Transform[] _stopPos;
     [Header("エネルギー弾が出る位置"), SerializeField] Transform _muzzle;//エネルギー弾はマズルの数だけ撃つ
     Color _warningColor = Color.red;
     Color _originalColor;
     Renderer _rend;
     float _distance;//プレイヤーと敵の距離
-    Transform _player;
     [SerializeField]LayerMask _groundLayer;
     Vector3 _centerPos;
     Vector3 _targetX;
     Vector3 _tackleTargetPos;
     Vector3 _tackleDirection;
     bool _isAttack;
-    bool _canLockOn;
     bool _isTackle;//タックル中かどうかのbool
     bool _isReturning;//タックル後元の高さに戻すためのbool
     bool _isFacingRight;//どこ向いているかのbool
@@ -40,9 +40,10 @@ public class FlyingEnemy : EnemyBase
     [Header("点滅回数"),SerializeField] int _blinkcount = 3;
     [Header("点滅時間"), SerializeField] float _blinkinterval = 0.5f;
     float _timer;
-    void Start()
+    protected override void Start()
     {
-        _player = GameObject.FindGameObjectWithTag("Player").transform;
+        base.Start();
+        _bulletPool = new ObjectPool<EnemyBullet>(_bullet, _poolSize, transform);
         _centerPos = transform.position;
         _targetX = RandomDirection();
         _rend = GetComponent<Renderer>();
@@ -52,18 +53,19 @@ public class FlyingEnemy : EnemyBase
 
     void Update()
     {
+        if (IsStopped()) return;
+        var player = PlayerTransform;
+        if (player == null) return;
         _hoverOffSet = Mathf.Sin(Time.time * HoverFrequency) * HoverAmplitude;
       #region
-        _distance = Vector3.Distance(transform.position , _player.transform.position);//プレイヤーと敵の距離
+        _distance = Vector3.Distance(transform.position , player.position);//プレイヤーと敵の距離
         if (_distance > DetectRange && !_isAttack)//プレイヤーが範囲外に居たら
         {
             EnemyMove(); //ランダム移動
-            _canLockOn = false;
             _count = 0;
         }
         else//プレイヤーが範囲内だったら
         {
-            _canLockOn = true;
             Attack();
         }
         #endregion
@@ -91,7 +93,6 @@ public class FlyingEnemy : EnemyBase
             _targetX = RandomDirection();
         }
     }
-    
     private Vector3 RandomDirection()//ランダムな方向を決めるメソッド
     {
         float x = Random.Range(-WanderMoveDistance, WanderMoveDistance);
@@ -112,7 +113,7 @@ public class FlyingEnemy : EnemyBase
     }
     void FacePlayer()
     {
-        _isFacingRight = _player.position.x >= transform.position.x;
+        _isFacingRight = PlayerTransform.position.x >= transform.position.x;
         UpdateFacing();
     }
     //攻撃処理
@@ -136,13 +137,18 @@ public class FlyingEnemy : EnemyBase
     {
         _isAttack = true;
         yield return StartCoroutine(Blink());
-        _tackleTargetPos = _player.transform.position;
+        var player = PlayerTransform;
+        if (player == null)
+        {
+            _isAttack = false;
+            yield break;
+        }
+        _tackleTargetPos = player.position;
         _tackleDirection = (_tackleTargetPos - transform.position).normalized;
         _tackleDirection.z = 0f;
         _isTackle= true;
         _timer = 0;
-       
-            while (TackleMaxTime>_timer)
+       while (TackleMaxTime>_timer)
         {
             if (Physics.Raycast(transform.position, _tackleDirection, TackleStopDistance, _groundLayer))
             {
@@ -197,11 +203,8 @@ public class FlyingEnemy : EnemyBase
     }
     void Shoot(Transform muzzle)
     {
-        GameObject bulletObj = Instantiate(_bullet, _muzzle.position, Quaternion.identity);
-        if (bulletObj.TryGetComponent<EnemyBullet>(out var bullet))
-        {
-            bullet.Init(muzzle.position); // 本来の目標位置を渡す
-        }
+        var bulletObj = _bulletPool.SpawnObject(_muzzle.position);
+            bulletObj.Init(muzzle.position,_bulletPool); // 本来の目標位置を渡す
     }
     #endregion
     public IEnumerator Blink()//タックル直前点滅するメソッド
@@ -217,7 +220,7 @@ public class FlyingEnemy : EnemyBase
 
     protected override void Dead()
     {
-        Destroy(gameObject);
+        base.Dead();
     }
     public override void TakeDamage(float damage)
     {
