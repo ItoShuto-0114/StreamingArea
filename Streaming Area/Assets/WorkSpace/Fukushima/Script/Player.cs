@@ -16,6 +16,9 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        // 壁キック後の待ち時間などを進める
+        _controller.Tick(Time.deltaTime);
+
         // 左右入力の優先を決定
         UpdatePriorityDir();
 

@@ -21,12 +21,15 @@ public class PlayerController : MonoBehaviour
         _waitTimer = 0f;
     }
 
-    void Update()
+    /// <summary>
+    /// 毎フレームPlayerから呼ばれる（壁キック後の待ち時間を数える）
+    /// </summary>
+    public void Tick(float deltaTime)
     {
         // 壁キック直後は、待ち時間を数える
         if (_isWallKick)
         {
-            _waitTimer += Time.deltaTime;
+            _waitTimer += deltaTime;
 
             // 待ち時間が過ぎたら、また操作できるようにする
             if (_waitTimer >= _waitInput)
