@@ -6,12 +6,29 @@ using UnityEngine.InputSystem;
 /// </summary>
 public class Player : MonoBehaviour
 {
+    [Header("移動")]
+    [SerializeField] private float _moveSpeed = 5f;          // 通常の移動速度
+    [SerializeField] private float _jumpPower = 5f;          // ジャンプ力
+    [SerializeField] private float _dashSpeed = 10f;         // ダッシュの速度
+
+    [Header("判定")]
+    [SerializeField] private float _wallCheckDistance = 1.2f;   // 壁を調べる距離
+    [SerializeField] private float _groundCheckDistance = 1.1f; // 足元を調べる距離
+    [SerializeField] private float _wallKickWaitTime = 0.1f;    // 壁キック後の待ち時間
+
     private PlayerController _controller;
     private int _priorityDir = 0;   // 優先する入力（-1：左 0：入力なし 1：右）
 
     void Start()
     {
-        _controller = GetComponent<PlayerController>();
+        // ピュアクラスはGetComponentできないので、Playerが必要なものを集めて渡す
+        Rigidbody rb = GetComponent<Rigidbody>();
+
+        // PlayerControllerを new で作る（ここでコンストラクタが呼ばれる）
+        _controller = new PlayerController(
+            rb, transform,
+            _moveSpeed, _jumpPower, _dashSpeed,
+            _wallCheckDistance, _groundCheckDistance, _wallKickWaitTime);
     }
 
     void Update()

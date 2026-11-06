@@ -224,7 +224,6 @@ GameObject:
   - component: {fileID: 1417628924}
   - component: {fileID: 1417628923}
   - component: {fileID: 1417628927}
-  - component: {fileID: 1417628928}
   - component: {fileID: 1417628929}
   m_Layer: 0
   m_Name: Player
@@ -352,26 +351,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &1417628928
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1417628922}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1cd554f03f4c4b4baa7952ca37f077a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
-  PlayerSpeed: 5
-  PlayerJumpPower: 8
-  PlayerDashSpeed: 10
-  maxDistance: 0.7
-  _groundCheckDistance: 0.6
-  _waitInput: 0.3
-  _waitTimer: 0
-  _isWallKick: 0
 --- !u!114 &1417628929
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384,6 +363,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91f5c1c718a259b418fb09525df74da0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player
+  _moveSpeed: 5
+  _jumpPower: 8
+  _dashSpeed: 10
+  _wallCheckDistance: 0.7
+  _groundCheckDistance: 0.6
+  _wallKickWaitTime: 0.3
 --- !u!1 &1666873122
 GameObject:
   m_ObjectHideFlags: 0

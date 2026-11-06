@@ -1,24 +1,44 @@
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+/// <summary>
+/// プレイヤーの動きを担当するピュアクラス（何も継承しない）
+/// Playerから new で作られ、呼ばれたときだけ動く
+/// </summary>
+public class PlayerController
 {
-    [SerializeField] private float PlayerSpeed;
-    [SerializeField] private float PlayerJumpPower;
-    [SerializeField] private float PlayerDashSpeed;
-    [SerializeField] private float maxDistance = 1.2f;
-    [SerializeField] private float _groundCheckDistance = 1.1f; // 足元を調べる距離
-
+    // Player.csから受け取る
     private Rigidbody _rb;
-    private int _moveDir = 0; // Playerから指示された移動方向（ -1：左 0：入力なし 1：右）
+    private Transform _transform;
 
-    [SerializeField] private float _waitInput = 0.1f;   // 壁キック後の待ち時間
-    [SerializeField] private float _waitTimer = 0f;
-    [SerializeField] private bool _isWallKick = false;
+    private float PlayerSpeed;
+    private float PlayerJumpPower;
+    private float PlayerDashSpeed;
+    private float maxDistance;          // 壁を調べる距離
+    private float _groundCheckDistance; // 足元を調べる距離
+    private float _waitInput;           // 壁キック後の待ち時間
 
-    void Start()
+    // 状態
+    private int _moveDir = 0;           // Playerから指示された移動方向（-1：左 0：入力なし 1：右）
+    private float _waitTimer = 0f;
+    private bool _isWallKick = false;
+
+    /// <summary>
+    /// コンストラクタ（new されたときに1回だけ呼ばれる）
+    /// Playerから受け取ったものを、自分の変数にしまっておく
+    /// </summary>
+    public PlayerController(Rigidbody rb, Transform transform,
+        float moveSpeed, float jumpPower, float dashSpeed,
+        float wallCheckDistance, float groundCheckDistance, float waitInput)
     {
-        _rb = GetComponent<Rigidbody>();
-        _waitTimer = 0f;
+        _rb = rb;
+        _transform = transform;
+
+        PlayerSpeed = moveSpeed;
+        PlayerJumpPower = jumpPower;
+        PlayerDashSpeed = dashSpeed;
+        maxDistance = wallCheckDistance;
+        _groundCheckDistance = groundCheckDistance;
+        _waitInput = waitInput;
     }
 
     /// <summary>
@@ -47,9 +67,9 @@ public class PlayerController : MonoBehaviour
     bool IsGrounded()
     {
         // Sceneビューで確認するためのデバッグ線（緑）
-        Debug.DrawRay(transform.position, Vector3.down * _groundCheckDistance, Color.green);
+        Debug.DrawRay(_transform.position, Vector3.down * _groundCheckDistance, Color.green);
 
-        return Physics.Raycast(transform.position, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
+        return Physics.Raycast(_transform.position, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
     }
 
     /// <summary>
@@ -58,10 +78,10 @@ public class PlayerController : MonoBehaviour
     void WallKick()
     {
         // 左右どっち向きかを-1・1で取得
-        Vector3 moveDir = (transform.right * _moveDir).normalized;
+        Vector3 moveDir = (_transform.right * _moveDir).normalized;
 
         // Rayを作成（原点: 自分の位置, 方向: 前方）
-        Ray ray = new Ray(transform.position, moveDir);
+        Ray ray = new Ray(_transform.position, moveDir);
 
         // ヒット情報を格納する変数
         RaycastHit hit;
@@ -76,7 +96,7 @@ public class PlayerController : MonoBehaviour
 
             // このメソッドに入った段階でジャンプ入力がされているため、ここでの入力受付は必要なし
             // 実際に力を加える
-            _rb.linearVelocity = (-moveDir + transform.up) * PlayerJumpPower;
+            _rb.linearVelocity = (-moveDir + _transform.up) * PlayerJumpPower;
 
             // 壁キック判定を真に
             _isWallKick = true;
