@@ -33,7 +33,6 @@ public class TurretEnemy : EnemyBase,IDamageable
     bool _isRefracted;//屈折後か
     Vector3 _playerDistance;
     Vector3 _laserDir;
-    Transform _player;
     LineRenderer _lineRenderer;
     bool _isLaser;
     
@@ -44,18 +43,18 @@ public class TurretEnemy : EnemyBase,IDamageable
         Barrier,
         Return
     }
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         _lineRenderer = GetComponent<LineRenderer>();
         _lineRenderer.enabled = false;
-        _player = GameObject.FindGameObjectWithTag("Player").transform;
+        
     }
-
-
     private bool IsPlayerInRange()//プレイヤーが範囲内か
     {
-        Vector3 _toPlayer = _player.position - transform.position;
-
+        var player = PlayerTransform;
+        if (player == null) return false;
+        Vector3 _toPlayer = player.position - transform.position;
         float forwardDis = _isFacingRight ? _toPlayer.x : - _toPlayer.x;
         float verticalDis = Mathf.Abs(_toPlayer.y);
 
@@ -67,6 +66,11 @@ public class TurretEnemy : EnemyBase,IDamageable
     
     void Update()
     {
+        if(IsStopped())
+        {
+            return;
+        }
+
         if (IsPlayerInRange() && !_isLaser)
         {
             Attack();
@@ -83,8 +87,14 @@ public class TurretEnemy : EnemyBase,IDamageable
         _isLaser = true;
         float Lasertimer = 0;
         yield return new WaitForSeconds(LaserStartDelay);
-        bool isSameHeight = Mathf.Abs(_player.position.y - transform.position.y) < SameYThreshold;
-        _playerDistance = _player.position - LaserOrigin.position;//レーザの発射口とプレイヤーの距離
+        var player = PlayerTransform;
+        if(player == null)
+        {
+            _isLaser = false;
+            yield break;
+        }
+        bool isSameHeight = Mathf.Abs(player.position.y - transform.position.y) < SameYThreshold;
+        _playerDistance = player.position - LaserOrigin.position;//レーザの発射口とプレイヤーの距離
         _playerDistance.z = 0f;
         if (isSameHeight)//プレイヤーが同じY座標だったら
         {
@@ -256,7 +266,7 @@ public class TurretEnemy : EnemyBase,IDamageable
     }
     protected override void Dead()
     {
-        Destroy(gameObject);
+        base.Dead();
     }
     public override void TakeDamage(float damage)
     {
