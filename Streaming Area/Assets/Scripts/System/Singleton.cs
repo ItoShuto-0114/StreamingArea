@@ -8,7 +8,7 @@ public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     {
         get
         {
-            if (Instance == null)
+            if (instance == null)
                 Debug.LogWarning($"Singleton{typeof(T)}のインスタンスが存在していません");
 
             return instance;
