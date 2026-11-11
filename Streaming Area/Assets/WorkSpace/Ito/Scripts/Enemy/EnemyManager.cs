@@ -79,12 +79,13 @@ public class EnemyManager : Singleton<EnemyManager>
         }
         return result;
     } 
-    public  void EnemyOnDead(EnemyBase enemy)
+    public void EnemyOnDead(EnemyBase enemy)
     {
         _enemyList.Remove(enemy);
+        Debug.Log("残り"+_enemyList.Count);
         if(_enemyList.Count == 0)
         {
-            //ゲームクリア処理
+            GameManager.Instance?.EndGame(GameResult.Clear);
         }
     }
 }
