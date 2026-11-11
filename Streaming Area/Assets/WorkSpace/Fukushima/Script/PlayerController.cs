@@ -1,48 +1,75 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+/// <summary>
+/// プレイヤーの動きを担当するピュアクラス（何も継承しない）
+/// Playerから new で作られ、呼ばれたときだけ動く
+/// </summary>
+public class PlayerController
 {
-    [SerializeField] private float PlayerSpeed;
-    [SerializeField] private float PlayerJumpPower;
-    [SerializeField] private float PlayerDashSpeed;
-    [SerializeField] private float maxDistance = 1.2f;
-
+    // Player.csから受け取る
     private Rigidbody _rb;
-    private int _priorityDir = 0; // 優先する入力（ -1：左 0：入力なし 1：右）
-    [SerializeField] private int _jumpCount = 0;     // ジャンプできる回数（地面についたら1に）
+    private Transform _transform;
 
-    [SerializeField] private float _waitInput = 0.1f;   // 壁キック後の待ち時間
-    [SerializeField] private float _waitTimer = 0f;
-    [SerializeField] private bool _isWallKick = false;
+    private float PlayerSpeed;
+    private float PlayerJumpPower;
+    private float PlayerDashSpeed;
+    private float maxDistance;          // 壁を調べる距離
+    private float _groundCheckDistance; // 足元を調べる距離
+    private float _waitInput;           // 壁キック後の待ち時間
 
-    void Start()
+    // 状態
+    private int _moveDir = 0;           // Playerから指示された移動方向（-1：左 0：入力なし 1：右）
+    private float _waitTimer = 0f;
+    private bool _isWallKick = false;
+
+    /// <summary>
+    /// コンストラクタ（new されたときに1回だけ呼ばれる）
+    /// Playerから受け取ったものを、自分の変数にしまっておく
+    /// </summary>
+    public PlayerController(Rigidbody rb, Transform transform,
+        float moveSpeed, float jumpPower, float dashSpeed,
+        float wallCheckDistance, float groundCheckDistance, float waitInput)
     {
-        _rb = GetComponent<Rigidbody>();
-        _waitTimer = 0f;
+        _rb = rb;
+        _transform = transform;
+
+        PlayerSpeed = moveSpeed;
+        PlayerJumpPower = jumpPower;
+        PlayerDashSpeed = dashSpeed;
+        maxDistance = wallCheckDistance;
+        _groundCheckDistance = groundCheckDistance;
+        _waitInput = waitInput;
     }
 
-    void Update()
+    /// <summary>
+    /// 毎フレームPlayerから呼ばれる（壁キック後の待ち時間を数える）
+    /// </summary>
+    public void Tick(float deltaTime)
     {
-        // 壁キック直後は何もしない
-        if(_isWallKick && _waitInput > _waitTimer)
+        // 壁キック直後は、待ち時間を数える
+        if (_isWallKick)
         {
-            _waitTimer += Time.deltaTime;
-            return;
-        }
-        else
-        {
-            Move();
-            Jump();
+            _waitTimer += deltaTime;
 
-            _isWallKick = false;
-            _waitTimer = 0f;
-            
-            WallKick();
-            
-
+            // 待ち時間が過ぎたら、また操作できるようにする
+            if (_waitTimer >= _waitInput)
+            {
+                _isWallKick = false;
+                _waitTimer = 0f;
+            }
         }
 
+    }
+
+    /// <summary>
+    /// 足元にRayを飛ばして、地面があるか調べる
+    /// </summary>
+    bool IsGrounded()
+    {
+        // Sceneビューで確認するためのデバッグ線（緑）
+        Debug.DrawRay(_transform.position, Vector3.down * _groundCheckDistance, Color.green);
+
+        return Physics.Raycast(_transform.position, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
     }
 
     /// <summary>
@@ -50,15 +77,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void WallKick()
     {
-        // ジャンプ回数が1以上（地面についている）なら何もしない
-        if (_jumpCount > 0)
-            return;
-
         // 左右どっち向きかを-1・1で取得
-        Vector3 moveDir = (transform.right * _priorityDir).normalized;
+        Vector3 moveDir = (_transform.right * _moveDir).normalized;
 
         // Rayを作成（原点: 自分の位置, 方向: 前方）
-        Ray ray = new Ray(transform.position, moveDir);
+        Ray ray = new Ray(_transform.position, moveDir);
 
         // ヒット情報を格納する変数
         RaycastHit hit;
@@ -71,15 +94,12 @@ public class PlayerController : MonoBehaviour
 
             Debug.Log("当たったオブジェクト: " + hitObject.name);
 
-            // ジャンプボタンが押されたら壁キック（斜め45度方向に飛ばす）
-            if (Keyboard.current.spaceKey.wasPressedThisFrame)
-            {
-                // 実際に力を加える
-                _rb.linearVelocity = (-moveDir + transform.up) * PlayerJumpPower;
+            // このメソッドに入った段階でジャンプ入力がされているため、ここでの入力受付は必要なし
+            // 実際に力を加える
+            _rb.linearVelocity = (-moveDir + _transform.up) * PlayerJumpPower;
 
-                // 壁キック判定を真に
-                _isWallKick = true;
-            }
+            // 壁キック判定を真に
+            _isWallKick = true;
 
         }
 
@@ -88,113 +108,55 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
-    /// 左右移動・ダッシュ
+    /// 左右移動（Player.csから呼ばれる）
     /// </summary>
-    void Move()
+    public void Move(int dir)
     {
-        // 入力を取得
-        bool isLeftHeld = Keyboard.current.aKey.isPressed;
-        bool isRightHeld = Keyboard.current.dKey.isPressed;
-
-        // 前の入力を判断
-        // 左入力を優先
-        if (_priorityDir == -1)
+        // 壁キック直後は何もしない
+        if(_isWallKick)
         {
-            // 左入力優先状態かつ、左入力が離されたら
-            if (!isLeftHeld)
-            {
-                // 右入力が押されていれば、右優先に切り替える
-                if (isRightHeld)
-                {
-                    _priorityDir = 1;
-                }
-                else
-                {
-                    _priorityDir = 0;
-                }
-            }
-        }
-        else if (_priorityDir == 1)
-        {
-            // 右入力優先かつ、右入力が離されたら
-            if (!isRightHeld)
-            {
-                // 左入力が押されていれば、左優先に切り替える
-                if (isLeftHeld)
-                {
-                    _priorityDir = -1;
-                }
-                else
-                {
-                    _priorityDir = 0;
-                }
-            }
-        }
-        else if (_priorityDir == 0)
-        {
-            // どちらかの入力があれば、それを優先入力とする
-            if (Keyboard.current.aKey.isPressed)
-            {
-                _priorityDir = -1;
-            }
-            else if (Keyboard.current.dKey.isPressed)
-            {
-                _priorityDir = 1;
-            }
+            return;
         }
 
-        // 移動
-        // Shiftキーを押しながらならダッシュ
-        if (Keyboard.current.shiftKey.isPressed)
-        {
-            _rb.linearVelocity = new Vector3(_priorityDir * PlayerDashSpeed, _rb.linearVelocity.y);
-        }
-        else  // そうでないなら通常速度
-        {
-            _rb.linearVelocity = new Vector3(_priorityDir * PlayerSpeed, _rb.linearVelocity.y);
-        }
-
-
+        _moveDir = dir;
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerSpeed, _rb.linearVelocity.y);
 
     }
 
     /// <summary>
-    /// ジャンプ処理
+    /// ダッシュ（Player.csから呼ばれる）
     /// </summary>
-    void Jump()
+    public void Dash(int dir)
     {
-        bool isSpaceHeld = Keyboard.current.spaceKey.wasPressedThisFrame;
-
-        // ジャンプ処理
-        if (isSpaceHeld)
+        // 壁キック直後は何もしない
+        if (_isWallKick)
         {
-            if (_jumpCount > 0)
-            {
-                _rb.AddForce(new Vector3(0, PlayerJumpPower, 0), ForceMode.Impulse);
-            }
-            else if (_jumpCount == 0)
-            {
-                // ジャンプカウントが0なら何もしない
-            }
+            return;
+        }
+
+        _moveDir = dir;
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerDashSpeed, _rb.linearVelocity.y);
+    }
+
+    /// <summary>
+    /// ジャンプ処理（Player.csから呼ばれる）
+    /// </summary>
+    public void Jump()
+    {
+        // 壁キック直後は何もしない
+        if (_isWallKick)
+            return;
+
+        if (IsGrounded())
+        {
+            // 地面にいればジャンプ
+            _rb.AddForce(new Vector3(0, PlayerJumpPower, 0), ForceMode.Impulse);
+        }
+        else
+        {
+            // 空中なら壁キックを試す
+            WallKick();
         }
     }
 
-    // 地面との接触判定
-    private void OnTriggerEnter(Collider other)
-    {
-        // 地面タグだった場合
-        if (other.CompareTag("Ground"))
-        {
-            _jumpCount = 1;
-        }
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        // 地面タグから離れた場合
-        if (other.CompareTag("Ground"))
-        {
-            _jumpCount = 0;
-        }
-    }
 }
