@@ -18,6 +18,11 @@ public class EnemyBase : MonoBehaviour, IDamageable
     {
         get { return _isLockOn; }
     }
+    [ContextMenu("TestDamage")]
+    void TesrDamage()
+    {
+        TakeDamage(9999);
+    }
     protected virtual void Start()
     {
         EnemyManager.Instance?.RegisterEnemy(this);
