@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [System.Serializable]
 public struct HitBox
@@ -17,14 +16,20 @@ public struct HitBox
 public class PlayerAttack
 {
     [Header("UŒ‚—Í"), SerializeField] float _power;
+    [Header("‰¹‘¬Ža‚è‚Ìƒ_ƒ[ƒW"), SerializeField] float _sonicSlashpower;
+    [Header("‰¹‘¬Ža‚è‚ÌˆÚ“®ŽžŠÔ"), SerializeField] float _dashTime = 1;
+    [Header("‰¹‘¬Ža‚è‚ÌƒCƒ“ƒ^[ƒoƒ‹"), SerializeField] float _sonicSlashInterval;
+    [Header("‹¤UŽa‚è‚Ìƒ_ƒ[ƒW"), SerializeField] float _resonantSlashpower;
+    [Header("‹¤UŽa‚è‚ÌŽžŠÔ‚ðŽ~‚ß‚é•b”"), SerializeField] float _resonantTime = 3f;
     [Header("ƒRƒ“ƒ{‚ÌƒŠƒZƒbƒgŽžŠÔ"), SerializeField] float _resetComboTime = 2;
     [Header("Å‘å—­‚ßŽžŠÔ"), SerializeField] float _maxChargeTime = 3;
-    [Header("’ÊíUŒ‚‚Æƒ`ƒƒ[ƒWUŒ‚‚ðØ‚è‘Ö‚¦‚éŽžŠÔ"),SerializeField] float _chargeRequiredTime = 0.5f;
+    [Header("’ÊíUŒ‚‚Æƒ`ƒƒ[ƒWUŒ‚‚ðØ‚è‘Ö‚¦‚éŽžŠÔ"), SerializeField] float _chargeRequiredTime = 0.5f;
+    [Header("‰¹‘¬Ža‚è‚ðs‚Á‚½Žž‚ÌƒvƒŒƒCƒ„[‚Æ“G‚Ì‹——£"),SerializeField] Vector3 _offset = new Vector3(3, 0, 0);
     [Header("“–‚½‚è”»’è")]
-    [SerializeField] HitBox _firstAttack = new() { Offset = new Vector3(1,0,0), Size = new Vector3(1,1,2) ,DamageRate = 1,Startup = 1,Active = 0.5f,Recovery = 0.5f};
-    [SerializeField] HitBox _secondAttack = new() { Offset = new Vector3(1,0,0), Size = new Vector3(1,1,2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
-    [SerializeField] HitBox _thirdAttack = new() { Offset = new Vector3(1,0,0), Size = new Vector3(1.5f,1,2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
-    [SerializeField] HitBox _chargeAttack = new() { Offset = new Vector3(1,0,0), Size = new Vector3(2,1,2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
+    [SerializeField] HitBox _firstAttack = new() { Offset = new Vector3(1, 0, 0), Size = new Vector3(1, 1, 2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
+    [SerializeField] HitBox _secondAttack = new() { Offset = new Vector3(1, 0, 0), Size = new Vector3(1, 1, 2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
+    [SerializeField] HitBox _thirdAttack = new() { Offset = new Vector3(1, 0, 0), Size = new Vector3(1.5f, 1, 2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
+    [SerializeField] HitBox _chargeAttack = new() { Offset = new Vector3(1, 0, 0), Size = new Vector3(2, 1, 2), DamageRate = 1, Startup = 1, Active = 0.5f, Recovery = 0.5f };
     Transform _player;
     int _facing;
     int _combo;
@@ -109,14 +114,58 @@ public class PlayerAttack
                 break;
         }
     }
-    public void ResonantSlash()
+    public IEnumerator SonicSlash()//‰¹‘¬Ža‚è
     {
-
+        var LockOnEnemies = EnemyManager.Instance?.LockedOnEnemy();
+        if (_player == null)
+        {
+            _player = EnemyManager.Instance?.PlayerTransform;
+        }
+        if (_player == null || LockOnEnemies == null) yield break;
+        Vector3 origin = _player.transform.position;
+            while (LockOnEnemies.Count > 0)
+            {
+                var NextEnemy = EnemyManager.Instance?.NearistEnemy(LockOnEnemies, origin);
+                if (NextEnemy == null)
+                {
+                    yield break;
+                }
+                LockOnEnemies.Remove(NextEnemy);
+                origin = NextEnemy.transform.position + _offset;
+                yield return Dash(origin);
+                if (NextEnemy != null) NextEnemy.TakeDamage(_sonicSlashpower);
+                yield return new WaitForSeconds(_sonicSlashInterval);
+            }
     }
-    public void SonicSlash()
+    public IEnumerator Dash(Vector3 target)
     {
-
+        Vector3 Start = _player.transform.position;
+        float t = 0;
+        while (t < _dashTime)
+        {
+            t += Time.deltaTime;
+            _player.position = Vector3.Lerp(Start, target, t / _dashTime);
+            yield return null;
+        }
+        _player.position = target;
     }
+    public IEnumerator ResonantSlash()//‹¤UŽa‚è
+    {
+        EnemyManager.Instance?.SetStop(true);
+        var ScreenOnEnemy = EnemyManager.Instance?.EnemiesOnScreen();
+        if (ScreenOnEnemy == null)
+        {
+            EnemyManager.Instance?.SetStop(false); yield break;
+        }
+        foreach(var e in ScreenOnEnemy)
+        {
+            if (e == null) continue;
+            e.TakeDamage(_resonantSlashpower);
+        }
+        yield return new WaitForSeconds(_resonantTime);
+        EnemyManager.Instance?.SetStop(false);
+    }
+    
     IEnumerator AttackHitRoutine(HitBox box, float damage)
     {
         _isAttacking = true;
