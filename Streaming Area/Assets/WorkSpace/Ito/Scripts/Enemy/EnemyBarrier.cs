@@ -1,10 +1,10 @@
 using UnityEngine;
 
-public class EnemyBarrier : MonoBehaviour
+public class EnemyBarrier : MonoBehaviour,IDamageable
 {
     [Header("防壁生成時にプレイヤーを押し出すか"), SerializeField] bool BarrierPushPlayer = true;
     [Header("防壁に接触したときのダメージ"), SerializeField] int BarrierDamageOnTouch;
-    [Header("プレイヤーの攻撃何発で防壁が壊れるか"), SerializeField] int BarrierHP;
+    [Header("プレイヤーの攻撃何発で防壁が壊れるか"), SerializeField] float BarrierHP;
     [Header("防壁が自動消滅するまでの時間"), SerializeField] float BarrierLifeTime;
     [Header("バリアの最大の傾き"), SerializeField] float MaxBarrierAngle = 30;
     [Header("バリアのスピード"),SerializeField] float _barrierSpeed = 10;
@@ -37,8 +37,27 @@ public class EnemyBarrier : MonoBehaviour
 
     private void OnCollisionEnter(Collision col)
     {
-        //ダメージ処理
-        //if(col.collider.TryGetComponent<>)
+        if (!col.collider.CompareTag("Player")) return;
+       if(col.collider.TryGetComponent<IDamageable>(out var target))
+        {
+            target.TakeDamage(BarrierDamageOnTouch);
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Player")) return;
+        if (other.TryGetComponent<IDamageable>(out var target))
+        {
+            target.TakeDamage(BarrierDamageOnTouch);
+        }
     }
 
+    public void TakeDamage(float damage)
+    {
+        BarrierHP -= 1;
+        if (BarrierHP <= 0)
+        {
+            Destroy(gameObject);
+        }
+    }
 }
