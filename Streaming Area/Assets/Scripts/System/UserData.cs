@@ -1,16 +1,11 @@
 using UnityEngine;
 
-public class UserData : MonoBehaviour
+[System.Serializable]
+public class UserData
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public float ClearTime;
+    public int MaxComment;
+    public float MaxFever;
+    public float CurrentFever;
+    public float TotalMoney;
 }
