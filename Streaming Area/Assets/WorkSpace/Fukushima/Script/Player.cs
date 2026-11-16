@@ -19,13 +19,18 @@ public class Player : MonoBehaviour
     [Header("攻撃")]
     [SerializeField] PlayerAttack _attack;
 
-    
+    [Header("熱狂値")]
+    //[SerializeField]private Userdata data;
+    [SerializeField] private float _maxFever = 10000;
+
+
 
     private PlayerController _controller;
     private int _priorityDir = 0;   // 優先する入力（-1：左 0：入力なし 1：右）
     private int _facing = 1;
     private bool _isdashing = false;
 
+    private ComboCounter _comboCounter;
     void Start()
     {
         // ピュアクラスはGetComponentできないので、Playerが必要なものを集めて渡す
@@ -38,6 +43,8 @@ public class Player : MonoBehaviour
             _wallCheckDistance, _groundCheckDistance, _wallKickWaitTime);
 
         _attack.TakePlayerInfo(transform, 1);
+        _comboCounter = new(_maxFever);
+        _attack.SetFever(_comboCounter);
     }
 
     void Update()
