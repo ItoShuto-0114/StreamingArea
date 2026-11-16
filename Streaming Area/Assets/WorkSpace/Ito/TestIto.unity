@@ -160,7 +160,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 34713f726231f5241b06b50450de0f85, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.41926
+      value: 0.4110926
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 34713f726231f5241b06b50450de0f85, type: 3}
       propertyPath: m_LocalPosition.y
@@ -964,6 +964,7 @@ MonoBehaviour:
   _speed: 0
   _power: 0
   _duration: 0
+  _isLockOn: 0
   DetectRange: 5
   HoverHeight: 2.5
   HoverAmplitude: 0.2
@@ -1137,7 +1138,7 @@ Transform:
   m_GameObject: {fileID: 408855590}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7, y: 5, z: 0}
+  m_LocalPosition: {x: 15, y: 5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1163,6 +1164,7 @@ MonoBehaviour:
   _speed: 0
   _power: 0
   _duration: 0
+  _isLockOn: 0
   DetectRange: 7
   HoverHeight: 2.5
   HoverAmplitude: 0.2
@@ -2659,6 +2661,7 @@ MonoBehaviour:
   _speed: 0
   _power: 0
   _duration: 0
+  _isLockOn: 0
   DetectWidth: 20
   DetectHeight: 10
   LaserLength: 10
@@ -4213,6 +4216,7 @@ GameObject:
   - component: {fileID: 2015173957}
   - component: {fileID: 2015173956}
   - component: {fileID: 2015173961}
+  - component: {fileID: 2015173963}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -4452,6 +4456,20 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &2015173963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015173955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b60b75f456df81447954a5d7d177bb36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TestPlayerMove
+  _playerSpeed: 10
+  _jumpForce: 5
 --- !u!1 &2091652980
 GameObject:
   m_ObjectHideFlags: 0

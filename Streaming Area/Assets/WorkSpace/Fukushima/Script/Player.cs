@@ -16,8 +16,15 @@ public class Player : MonoBehaviour
     [SerializeField] private float _groundCheckDistance = 1.1f; // 足元を調べる距離
     [SerializeField] private float _wallKickWaitTime = 0.1f;    // 壁キック後の待ち時間
 
+    [Header("攻撃")]
+    [SerializeField] PlayerAttack _attack;
+
+    
+
     private PlayerController _controller;
     private int _priorityDir = 0;   // 優先する入力（-1：左 0：入力なし 1：右）
+    private int _facing = 1;
+    private bool _isdashing = false;
 
     void Start()
     {
@@ -29,6 +36,8 @@ public class Player : MonoBehaviour
             rb, transform,
             _moveSpeed, _jumpPower, _dashSpeed,
             _wallCheckDistance, _groundCheckDistance, _wallKickWaitTime);
+
+        _attack.TakePlayerInfo(transform, 1);
     }
 
     void Update()
@@ -39,14 +48,23 @@ public class Player : MonoBehaviour
         // 左右入力の優先を決定
         UpdatePriorityDir();
 
+        if (_priorityDir != 0)
+        {
+            _facing = _priorityDir;
+        }
+        _attack.TakePlayerInfo(transform, _facing);
+        _attack.UpdateAttack();
+
         // 移動
-        if(Keyboard.current.shiftKey.isPressed)
+        if (Keyboard.current.shiftKey.isPressed)
         {
             _controller.Dash(_priorityDir);
+            _isdashing = true;
         }
         else
         {
             _controller.Move(_priorityDir);
+            _isdashing = false;
         }
 
         // スペースキーが押された瞬間にジャンプ処理をPlayerControllerに送る
@@ -54,6 +72,26 @@ public class Player : MonoBehaviour
         {
             _controller.Jump();
         }
+        if(Mouse.current.leftButton.isPressed)
+        {
+            _attack.Charging();
+        }
+        if(Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+           StartCoroutine(_attack.ChargeRelease(_isdashing,!_controller.IsGrounded()));
+        }
+       if (Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            StartCoroutine(_attack.ResonantSlash());
+        }
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            StartCoroutine(_attack.SonicSlash());
+        }
+    }
+    void OnDrawGizmos()
+    {
+        if (_attack != null) _attack.OnDrawGizmos(transform.position);
     }
 
     /// <summary>
@@ -112,4 +150,5 @@ public class Player : MonoBehaviour
             }
         }
     }
+
 }
