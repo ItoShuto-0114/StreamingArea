@@ -1,16 +1,18 @@
 using UnityEngine;
 
-public class ComboCounter : MonoBehaviour
+public class ComboCounter
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    //Userdata _data;
+    float _maxFever;
+    private float _currentScore;
+    public ComboCounter(float max)//data‚ðŽæ“¾‚·‚é
     {
-        
+        _maxFever = max;
+        //_data = data;
     }
-
-    // Update is called once per frame
-    void Update()
+    public void AddFever(float value,string reason)
     {
-        
+        _currentScore = Mathf.Clamp(_currentScore + value,0, _maxFever);
+        Debug.Log(reason);
     }
 }
