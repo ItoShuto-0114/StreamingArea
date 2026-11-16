@@ -64,12 +64,11 @@ public class PlayerController
     /// <summary>
     /// 足元にRayを飛ばして、地面があるか調べる
     /// </summary>
-    bool IsGrounded()
+   public  bool IsGrounded()
     {
         // Sceneビューで確認するためのデバッグ線（緑）
-        Debug.DrawRay(_transform.position, Vector3.down * _groundCheckDistance, Color.green);
-
-        return Physics.Raycast(_transform.position, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
+        Debug.DrawRay(_transform.position + Vector3.up * 0.5f, Vector3.down * _groundCheckDistance, Color.green);
+        return Physics.Raycast(_transform.position + Vector3.up * 0.5f, Vector3.down, _groundCheckDistance, Physics.DefaultRaycastLayers);
     }
 
     /// <summary>

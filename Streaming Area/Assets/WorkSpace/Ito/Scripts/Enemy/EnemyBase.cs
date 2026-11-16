@@ -11,7 +11,8 @@ public class EnemyBase : MonoBehaviour, IDamageable
     [SerializeField] protected float _power;
     [Header("ノイズ状態の時間")]
     [SerializeField] protected float _duration;
-    protected bool _isLockOn = false;
+    [Header("ロックオン状態か")]
+    [SerializeField]protected bool _isLockOn = false;
     Coroutine _lockOnCoroutine;
     protected Transform PlayerTransform => EnemyManager.Instance.PlayerTransform;
     public bool IsLockedOn

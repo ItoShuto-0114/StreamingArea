@@ -12,7 +12,7 @@ public class EnemyManager : Singleton<EnemyManager>
         get
         {
             if (_player == null)
-                _player = FindFirstObjectByType<TestPlayerMove>()?.transform;//player‚É‚·‚é
+                _player = FindFirstObjectByType<Player>()?.transform;
             return _player;
         }
     }
