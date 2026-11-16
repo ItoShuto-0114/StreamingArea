@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// プレイヤーの窓口。入力を受け取り、PlayerControllerに指示を出す
 /// </summary>
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour,IDamageable
 {
     [Header("移動")]
     [SerializeField] private float _moveSpeed = 5f;          // 通常の移動速度
@@ -19,8 +19,12 @@ public class Player : MonoBehaviour
     [Header("攻撃")]
     [SerializeField] PlayerAttack _attack;
 
+    [Header("HP")]
+    [SerializeField]private float _maxHp = 100;
+    private float _currentHp;
+
     [Header("熱狂値")]
-    //[SerializeField]private Userdata data;
+    [SerializeField,Header("被弾したときの引かれる熱狂値")]private float _damageLossPoint = 200;
     [SerializeField] private float _maxFever = 10000;
 
 
@@ -42,8 +46,10 @@ public class Player : MonoBehaviour
             _moveSpeed, _jumpPower, _dashSpeed,
             _wallCheckDistance, _groundCheckDistance, _wallKickWaitTime);
 
+        _currentHp = _maxHp;
+
         _attack.TakePlayerInfo(transform, 1);
-        _comboCounter = new(_maxFever);
+        _comboCounter = new(_maxFever,GameManager.Instance?.userData);
         _attack.SetFever(_comboCounter);
     }
 
@@ -157,5 +163,13 @@ public class Player : MonoBehaviour
             }
         }
     }
-
+    public void TakeDamage(float damage)
+    {
+        _currentHp = Mathf.Clamp(_currentHp - damage, 0, _maxHp);
+        _comboCounter?.AddFever(-_damageLossPoint, "ダメージ(被弾)");
+        if (_currentHp<=0)
+        {
+            GameManager.Instance?.EndGame(GameResult.GameOver);
+        }
+    }
 }

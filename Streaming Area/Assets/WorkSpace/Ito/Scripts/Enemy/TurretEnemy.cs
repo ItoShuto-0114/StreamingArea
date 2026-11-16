@@ -35,6 +35,7 @@ public class TurretEnemy : EnemyBase,IDamageable
     Vector3 _laserDir;
     LineRenderer _lineRenderer;
     bool _isLaser;
+    bool _hashit;
     
     AttackLoop _currentState = AttackLoop.Laser;
     private enum AttackLoop
@@ -84,6 +85,7 @@ public class TurretEnemy : EnemyBase,IDamageable
 
     public IEnumerator LaserRoutine()
     {
+        _hashit = false;
         _isLaser = true;
         float Lasertimer = 0;
         yield return new WaitForSeconds(LaserStartDelay);
@@ -124,7 +126,11 @@ public class TurretEnemy : EnemyBase,IDamageable
             {
                 if (hit.collider.CompareTag("Player"))
                 {
-                    //レーザーダメージ処理
+                    if (!_hashit && hit.collider.TryGetComponent<IDamageable>(out var target))
+                    {
+                        target.TakeDamage(_power * LaserDamageRate);
+                        _hashit = true;
+                    }
                 }
                 DrawLaser(LaserOrigin.position, hit.point);
             }
@@ -154,14 +160,12 @@ public class TurretEnemy : EnemyBase,IDamageable
                 {
                     if (hit.collider.CompareTag("Player"))
                     {
-                        if(!_isRefracted)
+                        
+                        float damage = _power * (_isRefracted ? RefractionDamageRate : LaserDamageRate);
+                        if (!_hashit && hit.collider.TryGetComponent<IDamageable>(out var target))
                         {
-                            //レーザーダメージ処理
-                            //float damage = _power * (_isRefracted ? RefractionDamage : LaserDamage);
-                        }
-                        else
-                        {
-                            //屈折ダメージ処理
+                            target.TakeDamage(damage);
+                            _hashit = true;
                         }
                     }
                     else if (UseBarrierRefraction && hit.collider.GetComponent<EnemyBarrier>() != null)//当たった物にEnemyBarrierがついてるか

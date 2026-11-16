@@ -5,7 +5,7 @@ public class EnemyBullet : MonoBehaviour
 {
     [Header("エナジー弾の速度"), SerializeField] float ProjectileSpeed = 10;
     [Header("とどまる時間"), SerializeField] float _delayTime = 3;
-    [Header("エネルギー弾のダメージ"), SerializeField] int ProjectileDamage;
+    [Header("エネルギー弾のダメージ"), SerializeField] float ProjectileDamage;
     [Header("エネルギー弾が消えるまでの時間"), SerializeField] float ProjectileLifeTime = 5;
     [Header("発射口から止まる位置までかかる時間"), SerializeField] float _moveToMuzzleTime = 0.2f; 
     Vector3 _direction;
@@ -59,11 +59,12 @@ public class EnemyBullet : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if(other.CompareTag("Player"))
+        if (!other.CompareTag("Player")) return;
+        if (other.TryGetComponent<IDamageable>(out var target))
         {
+            target.TakeDamage(ProjectileDamage);
             Release();
-            Debug.Log("プレイヤーに当たった");
-            //ダメージ処理
+
         }
     }
     void Release()
