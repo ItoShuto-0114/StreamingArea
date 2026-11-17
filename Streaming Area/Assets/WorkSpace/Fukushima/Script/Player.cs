@@ -19,6 +19,9 @@ public class Player : MonoBehaviour,IDamageable
     [Header("攻撃")]
     [SerializeField] PlayerAttack _attack;
 
+    [Header("スタイルチェンジ")]
+    [SerializeField] PlayerStyle _style;
+
     [Header("HP")]
     [SerializeField]private float _maxHp = 100;
     private float _currentHp;
@@ -101,6 +104,14 @@ public class Player : MonoBehaviour,IDamageable
         {
             StartCoroutine(_attack.SonicSlash());
         }
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
+        {
+            _style.ChangeStyle();
+            StyleStats stats = _style.GetStats();
+            _controller.SetSpeedRate(stats.SpeedRate);
+            _attack.SetRate(stats.PowerRate,stats.AttackSpeedRate,stats.HitBoxRate);
+            _comboCounter?.SetFeverRate(stats.FeverRate);
+        }
     }
     void OnDrawGizmos()
     {
@@ -165,7 +176,8 @@ public class Player : MonoBehaviour,IDamageable
     }
     public void TakeDamage(float damage)
     {
-        _currentHp = Mathf.Clamp(_currentHp - damage, 0, _maxHp);
+        float takedamagerate = _style.GetStats().TakeDamageRate;
+        _currentHp = Mathf.Clamp(_currentHp - damage * takedamagerate, 0, _maxHp);
         _comboCounter?.AddFever(-_damageLossPoint, "ダメージ(被弾)");
         if (_currentHp<=0)
         {

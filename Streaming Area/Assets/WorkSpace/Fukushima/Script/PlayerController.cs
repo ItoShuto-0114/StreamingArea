@@ -16,6 +16,7 @@ public class PlayerController
     private float maxDistance;          // 壁を調べる距離
     private float _groundCheckDistance; // 足元を調べる距離
     private float _waitInput;           // 壁キック後の待ち時間
+    private float _speedrate = 1;
 
     // 状態
     private int _moveDir = 0;           // Playerから指示された移動方向（-1：左 0：入力なし 1：右）
@@ -118,7 +119,7 @@ public class PlayerController
         }
 
         _moveDir = dir;
-        _rb.linearVelocity = new Vector3(_moveDir * PlayerSpeed, _rb.linearVelocity.y);
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerSpeed* _speedrate, _rb.linearVelocity.y);
 
     }
 
@@ -134,7 +135,7 @@ public class PlayerController
         }
 
         _moveDir = dir;
-        _rb.linearVelocity = new Vector3(_moveDir * PlayerDashSpeed, _rb.linearVelocity.y);
+        _rb.linearVelocity = new Vector3(_moveDir * PlayerDashSpeed * _speedrate, _rb.linearVelocity.y);
     }
 
     /// <summary>
@@ -156,6 +157,10 @@ public class PlayerController
             // 空中なら壁キックを試す
             WallKick();
         }
+    }
+    public void SetSpeedRate(float speedrate)
+    {
+        _speedrate = speedrate;
     }
 
 }

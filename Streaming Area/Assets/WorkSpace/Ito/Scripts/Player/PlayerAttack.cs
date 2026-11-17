@@ -51,6 +51,10 @@ public class PlayerAttack
     bool _isAttacking;
     HitBox _activeBox;
     bool _showBox;
+    float _attackSpeedRate = 1;
+    float _powerRate = 1;
+    float _hitBoxRate = 1;
+    
     ComboCounter _counter;
     public void TakePlayerInfo(Transform player, int facing)
     {
@@ -95,7 +99,7 @@ public class PlayerAttack
     {
         _combo = 0;
         _timer = 0;
-        yield return AttackHitRoutine(_chargeAttack,_chargeAttack.Name ,charge * _power * _chargeAttack.DamageRate);
+        yield return AttackHitRoutine(_chargeAttack,_chargeAttack.Name ,charge * _power * _chargeAttack.DamageRate * _powerRate);
     }
     IEnumerator Attack()
     {
@@ -104,25 +108,25 @@ public class PlayerAttack
         {
             case 0:
                 _combo = 1;
-                yield return AttackHitRoutine(_firstAttack,_firstAttack.Name, _power * _firstAttack.DamageRate);
+                yield return AttackHitRoutine(_firstAttack,_firstAttack.Name, _power * _firstAttack.DamageRate * _powerRate);
                 break;
             case 1:
                 _combo = 2;
-                yield return AttackHitRoutine(_secondAttack,_secondAttack.Name, _power * _secondAttack.DamageRate);
+                yield return AttackHitRoutine(_secondAttack,_secondAttack.Name, _power * _secondAttack.DamageRate * _powerRate);
                 break;
             case 2:
                 _combo = 0;
-                yield return AttackHitRoutine(_thirdAttack,_thirdAttack.Name, _power * _thirdAttack.DamageRate);
+                yield return AttackHitRoutine(_thirdAttack,_thirdAttack.Name, _power * _thirdAttack.DamageRate * _powerRate);
                 break;
         }
     }
     public IEnumerator DashAttack()
     {
-        yield return AttackHitRoutine(_dashAttack,_dashAttack.Name,_power * _dashAttack.DamageRate);
+        yield return AttackHitRoutine(_dashAttack,_dashAttack.Name,_power * _dashAttack.DamageRate  * _powerRate);
     }
     public IEnumerator JumpAttack()
     {
-        yield return AttackHitRoutine(_jumpAttack,_jumpAttack.Name, _power * _jumpAttack.DamageRate);
+        yield return AttackHitRoutine(_jumpAttack,_jumpAttack.Name, _power * _jumpAttack.DamageRate * _powerRate);
     }
     public IEnumerator SonicSlash()//âπë¨éaÇË
     {
@@ -145,7 +149,7 @@ public class PlayerAttack
                 yield return SonicDash(origin);
                 if (NextEnemy != null)
                 {
-                   NextEnemy.TakeDamage(_power * _sonicSlashpowerRate);
+                   NextEnemy.TakeDamage(_power * _sonicSlashpowerRate * _powerRate);
                   _counter?.AddFever(_sonicSlashpoint, "âπë¨éaÇËÇ™ìñÇΩÇ¡ÇΩÅI");
                 }
            
@@ -176,7 +180,7 @@ public class PlayerAttack
         foreach(var e in ScreenOnEnemy)
         {
             if (e == null) continue;
-            e.TakeDamage(_power * _resonantSlashpowerRate);
+            e.TakeDamage(_power * _resonantSlashpowerRate * _powerRate);
         }
         yield return new WaitForSeconds(_resonantTime);
         EnemyManager.Instance?.SetStop(false);
@@ -186,26 +190,26 @@ public class PlayerAttack
     {
         _isAttacking = true;
         Debug.Log(name);
-        yield return new WaitForSeconds(box.Startup);
+        yield return new WaitForSeconds(box.Startup/_attackSpeedRate);
 
         _activeBox = box;
         _showBox = true;
         var hitcol = new HashSet<Collider>();
         float timer = 0;
-        while (timer < box.Active)
+        while (timer < box.Active/_attackSpeedRate)
         {
             DoHit(_player.position, _facing, box, damage, hitcol);
             timer += Time.deltaTime;
             yield return null;
         }
         _showBox = false;
-        yield return new WaitForSeconds(box.Recovery);
+        yield return new WaitForSeconds(box.Recovery/_attackSpeedRate);
         _isAttacking = false;
     }
     public void DoHit(Vector3 origin, int facing, HitBox box, float damage, HashSet<Collider> hitcol)
     {
         Vector3 center = origin + new Vector3(box.Offset.x * facing, box.Offset.y, 0f);
-        Collider[] hits = Physics.OverlapBox(center, box.Size / 2, Quaternion.identity);
+        Collider[] hits = Physics.OverlapBox(center, box.Size / 2 * _hitBoxRate, Quaternion.identity);
         foreach (var c in hits)
         {
             if (c.transform.root == _player.root) continue;
@@ -223,10 +227,16 @@ public class PlayerAttack
         if (!_showBox) return;
         Vector3 center = origin + new Vector3(_activeBox.Offset.x * _facing, _activeBox.Offset.y, 0f);
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(center, _activeBox.Size);
+        Gizmos.DrawWireCube(center, _activeBox.Size * _hitBoxRate);
     }
     public void SetFever(ComboCounter Counter)
     {
         _counter = Counter;
+    }
+    public void SetRate(float powerrate, float attackspeedrate,float hitboxrate)
+    {
+        _powerRate = powerrate;
+        _attackSpeedRate = attackspeedrate;
+        _hitBoxRate = hitboxrate;
     }
 }
