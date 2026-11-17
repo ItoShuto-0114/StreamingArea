@@ -126,6 +126,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBullet
   ProjectileSpeed: 10
   _delayTime: 2
-  ProjectileDamage: 0
+  ProjectileDamage: 20
   ProjectileLifeTime: 5
   _moveToMuzzleTime: 0.5

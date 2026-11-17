@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,6 +10,8 @@ public enum GameResult
 }
 public class GameManager : Singleton<GameManager>
 {
+    [SerializeField]UserData _userData;
+    public UserData userData {  get { return _userData; } }
     public GameResult Result { get; private set; } = GameResult.None;
     public void EndGame(GameResult result)
     {
@@ -25,5 +28,6 @@ public class GameManager : Singleton<GameManager>
     public void ResetResult()
     {
         Result = GameResult.None;
+        //_userData = new();
     }
 }

@@ -13,6 +13,7 @@ public class FlyingEnemy : EnemyBase
     [Header("弾と弾の発射感覚"), SerializeField] float ShotInterval = 0.2f;
     [Header("射撃後の硬直時間"), SerializeField] float ShotCooldownAfterBurst = 5f;
     [Header("タックル攻撃"), SerializeField] bool UseTackle = false;
+    [Header("タックルの攻撃倍率"), SerializeField] float TacklePowerRate = 1.2f;
     [Header("射撃＋移動を何セット後にタックルするか"), SerializeField] int TackleAfterBurstSet = 2;
     [Header("タックル時の移動速度"), SerializeField] float TackleSpeed = 10;
     [Header("タックルの最大継続時間"), SerializeField] float TackleMaxTime = 1;
@@ -226,5 +227,13 @@ public class FlyingEnemy : EnemyBase
     {
         base.TakeDamage(damage);
     }
-   
+    private void OnCollisionEnter(Collision col)
+    {
+        if (!_isTackle) return;
+        if (!col.collider.CompareTag("Player")) return;
+        if(col.collider.TryGetComponent<IDamageable>(out var target))
+        {
+            target.TakeDamage(_power * TacklePowerRate);
+        }
+    }
 }

@@ -125,8 +125,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBarrier
   BarrierPushPlayer: 0
-  BarrierDamageOnTouch: 0
-  BarrierHP: 0
+  BarrierDamageOnTouch: 10
+  BarrierHP: 1
   BarrierLifeTime: 5
   MaxBarrierAngle: 30
   _barrierSpeed: 1

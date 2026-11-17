@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 /// <summary>
 /// プレイヤーの窓口。入力を受け取り、PlayerControllerに指示を出す
 /// </summary>
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour,IDamageable
 {
     [Header("移動")]
     [SerializeField] private float _moveSpeed = 5f;          // 通常の移動速度
@@ -19,13 +19,25 @@ public class Player : MonoBehaviour
     [Header("攻撃")]
     [SerializeField] PlayerAttack _attack;
 
-    
+    [Header("スタイルチェンジ")]
+    [SerializeField] PlayerStyle _style;
+
+    [Header("HP")]
+    [SerializeField]private float _maxHp = 100;
+    private float _currentHp;
+
+    [Header("熱狂値")]
+    [SerializeField,Header("被弾したときの引かれる熱狂値")]private float _damageLossPoint = 200;
+    [SerializeField] private float _maxFever = 10000;
+
+
 
     private PlayerController _controller;
     private int _priorityDir = 0;   // 優先する入力（-1：左 0：入力なし 1：右）
     private int _facing = 1;
     private bool _isdashing = false;
 
+    private ComboCounter _comboCounter;
     void Start()
     {
         // ピュアクラスはGetComponentできないので、Playerが必要なものを集めて渡す
@@ -37,7 +49,11 @@ public class Player : MonoBehaviour
             _moveSpeed, _jumpPower, _dashSpeed,
             _wallCheckDistance, _groundCheckDistance, _wallKickWaitTime);
 
+        _currentHp = _maxHp;
+
         _attack.TakePlayerInfo(transform, 1);
+        _comboCounter = new(_maxFever,GameManager.Instance?.userData);
+        _attack.SetFever(_comboCounter);
     }
 
     void Update()
@@ -87,6 +103,14 @@ public class Player : MonoBehaviour
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             StartCoroutine(_attack.SonicSlash());
+        }
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
+        {
+            _style.ChangeStyle();
+            StyleStats stats = _style.GetStats();
+            _controller.SetSpeedRate(stats.SpeedRate);
+            _attack.SetRate(stats.PowerRate,stats.AttackSpeedRate,stats.HitBoxRate);
+            _comboCounter?.SetFeverRate(stats.FeverRate);
         }
     }
     void OnDrawGizmos()
@@ -150,5 +174,14 @@ public class Player : MonoBehaviour
             }
         }
     }
-
+    public void TakeDamage(float damage)
+    {
+        float takedamagerate = _style.GetStats().TakeDamageRate;
+        _currentHp = Mathf.Clamp(_currentHp - damage * takedamagerate, 0, _maxHp);
+        _comboCounter?.AddFever(-_damageLossPoint, "ダメージ(被弾)");
+        if (_currentHp<=0)
+        {
+            GameManager.Instance?.EndGame(GameResult.GameOver);
+        }
+    }
 }
